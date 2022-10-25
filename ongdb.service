@@ -1,0 +1,21 @@
+[Unit]
+Description=ONgDB Graph Database
+After=network.target
+
+[Service]
+Type=forking
+Environment="JAVA_CMD=/bin/java"
+Environment="_JAVA_OPTIONS=-Djava.io.tmpdir=/tmp/ongdbJava"
+User=ongdb
+ExecStart=/usr/ongdb/bin/ongdb start
+ExecStop=/usr/ongdb/bin/ongdb stop
+ExecReload=/usr/ongdb/bin/ongdb restart
+RemainAfterExit=no
+Restart=on-failure
+LimitNOFILE=60000
+TimeoutSec=600
+
+SELinuxContext=system_u:system_r:ongdb_t:s0
+
+[Install]
+WantedBy=multi-user.target

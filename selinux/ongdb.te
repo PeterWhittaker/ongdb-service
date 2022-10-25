@@ -1,0 +1,142 @@
+policy_module(ongdb, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+require {
+	type user_tmp_t;
+	type unreserved_port_t;
+	type usr_t;
+	type tmp_t;
+	type sysfs_t;
+	type sysctl_net_t;
+	type sssd_var_lib_t;
+	type sssd_public_t;
+	type shell_exec_t;
+	type random_device_t;
+	type proc_net_t;
+	type proc_t;
+	type node_t;
+	type net_conf_t;
+	type initrc_t;
+	type initrc_tmp_t;
+	type fs_t;
+	type fixed_disk_device_t;
+	type cgroup_t;
+	type cert_t;
+	type bin_t;
+	type fsadm_t;
+	type kdumpctl_t;
+	type lvm_t;
+	type udev_t;
+	type init_t;
+
+	type usermodehelper_t;
+	type passwd_file_t;
+	type sysctl_vm_t;
+	type vmtools_t;
+	type sssd_t;
+
+        type setfiles_t;
+}
+
+type ongdb_db_t;
+type ongdb_t;
+type ongdb_exec_t;
+init_daemon_domain(ongdb_t, ongdb_exec_t)
+
+
+
+########################################
+#
+# ongdb local policy
+#
+allow ongdb_t bin_t:file { map execute execute_no_trans };
+allow ongdb_t cert_t:dir search;
+allow ongdb_t cert_t:file { getattr open read };
+allow ongdb_t cert_t:lnk_file read;
+allow ongdb_t fs_t:filesystem { associate getattr };
+
+#adding this to test usability
+#allow ongdb_t shell_exec_t:file map;
+
+domain_use_interactive_fds(ongdb_t)
+
+files_read_etc_files(ongdb_t)
+
+miscfiles_read_localization(ongdb_t)
+
+#ignoring these bcause we likely dont need to worry about cgroup for our use case - retained for documentation
+#allow ongdb_t cgroup_t:dir search;
+#allow ongdb_t cgroup_t:file { getattr open read };
+
+#ignoring these because we probably dont care about sssd - retained for documentation
+#allow ongdb_t sssd_public_t:dir search;
+#allow ongdb_t sssd_public_t:file { getattr open read };
+#allow ongdb_t sssd_var_lib_t:dir search;
+
+#contingent on how well ongdb handles the error (net_conf_t)
+allow ongdb_t net_conf_t:file { getattr open read };
+allow ongdb_t self:dir { add_name remove_name write };
+
+#contingent on how well it handles without it
+allow ongdb_t random_device_t:chr_file { getattr open read };
+
+allow ongdb_t unreserved_port_t:tcp_socket name_bind;
+allow ongdb_t ongdb_db_t:blk_file getattr;
+allow ongdb_t node_t:tcp_socket node_bind;
+allow ongdb_t proc_net_t:file { getattr open read };
+allow ongdb_t proc_t:file { getattr open read };
+
+type_transition ongdb_t ongdb_db_t:file ongdb_db_t;
+type_transition ongdb_t ongdb_t:dir ongdb_t;
+type_transition ongdb_t ongdb_t:file ongdb_exec_t;
+
+allow fsadm_t ongdb_db_t:blk_file { getattr ioctl open read };
+allow init_t ongdb_db_t:blk_file getattr;
+allow kdumpctl_t ongdb_db_t:blk_file getattr;
+allow lvm_t ongdb_db_t:blk_file getattr;
+allow udev_t ongdb_db_t:blk_file getattr;
+allow vmtools_t ongdb_db_t:blk_file getattr;
+
+allow ongdb_t shell_exec_t:file { execute execute_no_trans map };
+
+
+allow ongdb_t self:file { create map unlink };
+allow ongdb_t self:netlink_route_socket { bind create getattr getopt nlmsg_read write };
+allow ongdb_t self:tcp_socket { accept bind create getattr getopt listen read setopt shutdown write };
+allow ongdb_t self:udp_socket { connect create getattr getopt ioctl read setopt write };
+allow ongdb_t self:process execmem;
+
+allow ongdb_t sysctl_net_t:dir search;
+allow ongdb_t sysctl_net_t:file { getattr open read };
+
+allow ongdb_t sysfs_t:dir read;
+allow ongdb_t sysfs_t:file { getattr open read };
+allow ongdb_t sysfs_t:lnk_file read;
+
+#!!!! This avc can be allowed using the boolean 'domain_can_mmap_files'
+#allow ongdb_t tmp_t:file { create execute unlink write map };
+#allow ongdb_t tmp_t:dir { add_name create read remove_name rmdir write };
+
+allow ongdb_t cgroup_t:dir search;
+allow ongdb_t cgroup_t:file { read open getattr };
+
+allow ongdb_t passwd_file_t:file { open getattr read };
+
+allow ongdb_t fixed_disk_device_t:blk_file getattr;
+
+# made with great reservation Thu Sep 22 18:42:52 UTC 2022
+# probably OK
+allow ongdb_t { sssd_public_t sssd_var_lib_t}:dir search;
+allow ongdb_t sssd_public_t:file { getattr open read };
+allow ongdb_t sssd_var_lib_t:sock_file write;
+allow ongdb_t sssd_t:unix_stream_socket connectto;
+# potentially nasty
+allow ongdb_t tmp_t:dir { add_name remove_name write };
+allow ongdb_t tmp_t:file { create unlink write };
+
+allow setfiles_t { ongdb_t ongdb_exec_t}:{ dir file} relabelto;
+allow ongdb_t ongdb_exec_t:file { create unlink write };

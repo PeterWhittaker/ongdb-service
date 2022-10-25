@@ -1,0 +1,8 @@
+/usr/ongdb(/.*)* system_u:object_r:ongdb_t:s0
+/usr/ongdb/bin/ongdb system_u:object_r:ongdb_exec_t:s0
+/dev/dm-0(/.*)* system_u:object_r:ongdb_db_t:s0
+/tmp/hsperfdata_ongdb*(/.*)* system_u:object_r:ongdb_t:s0
+#/tmp/libnetty_transport_native*(.so)* system_u:object_r:ongdb_exec_t:s0
+#/tmp/jetty* system_u:object_r:ongdb_t:s0
+/tmp/ongdbJava system_u:object_r:ongdb_t:s0
+/tmp/ongdbJava/(.*)* system_u:object_r:ongdb_exec_t:s0

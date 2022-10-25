@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+[[ -z $1 ]] && TS="" || TS="-ts $1"
+[[ -z $2 ]] && CMD=audit2allow || CMD=less
+ausearch -m AVC -m USER_AVC ${TS}|${CMD}
